@@ -1,40 +1,96 @@
 # LeetCode 169 — Majority Element
 
+> **Core idea:** when different values cancel each other in pairs, the majority element is the one left standing.
+
+![Language: C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat-square&logo=c&logoColor=white)
+![Time: O(n)](https://img.shields.io/badge/Time-O(n)-2ea44f?style=flat-square)
+![Space: O(1)](https://img.shields.io/badge/Space-O(1)-0366d6?style=flat-square)
+
 ## Problem
 
-Given an integer array `nums` of size `n`, return the element that appears more than `⌊n / 2⌋` times.
+Given an integer array <code>nums</code> of size <code>n</code>, return the element that appears more than <code>⌊n / 2⌋</code> times.
 
 The problem guarantees that a majority element exists.
 
-## Initial approach: brute-force counting
+---
 
-The original approach was to consider each element as a possible answer and count how many times it appears by scanning the array again. As soon as an element's count is greater than `n / 2`, return it.
+## The journey: from brute force to a one-pass solution
 
-This is easy to reason about and works correctly, but it repeats the same comparisons many times.
+### 1) Initial approach — brute-force counting
 
-- **Time complexity:** O(n²)
-- **Space complexity:** O(1)
+The original approach was to treat each element as a possible answer and count its occurrences by scanning the array again. As soon as an element's count is greater than <code>n / 2</code>, return it.
 
-## Moving to Boyer–Moore Voting Algorithm
+✅ Straightforward and correct  
+⚠️ Repeats the same comparisons many times
 
-The key observation is that the majority element occurs more often than every other value combined. Pairing one majority-element occurrence with one non-majority occurrence can never eliminate all occurrences of the majority element.
+| Time | Space |
+| :---: | :---: |
+| **O(n²)** | **O(1)** |
 
-Maintain:
+### 2) Key observation — cancel different pairs
 
-- a **candidate** `x`
-- a **counter** `c`
+A majority element appears **more times than all other values combined**. So, if one occurrence of the majority element is paired with one different value, removing that pair cannot remove the majority completely.
 
-For each number:
+~~~text
+[2, 2, 1, 1, 1, 2, 2]
 
-1. If it matches the candidate, increment the counter.
-2. Otherwise, decrement the counter, treating the two different values as a cancelled pair.
-3. When the counter becomes zero, choose the current number as the new candidate and reset the counter to one.
+2 ↔ 1   cancel
+2 ↔ 1   cancel
+2 ↔ 1   cancel
+2       survives
+2       survives
 
-Because a majority element is guaranteed, the final candidate is the answer.
+Majority element: 2
+~~~
+
+This is the intuition behind the **Boyer–Moore Voting Algorithm**.
+
+---
+
+## Boyer–Moore Voting Algorithm
+
+Keep only two pieces of information:
+
+| Variable | Meaning |
+| --- | --- |
+| <code>x</code> | current candidate |
+| <code>c</code> | its current vote count |
+
+~~~mermaid
+flowchart TD
+    A([Read next number]) --> B{Does it match<br/>the candidate?}
+    B -- Yes --> C[Increase count]
+    B -- No --> D[Decrease count]
+    C --> E{More numbers?}
+    D --> F{Count is zero?}
+    F -- Yes --> G[Set current number<br/>as candidate and count = 1]
+    F -- No --> E
+    G --> E
+    E -- Yes --> A
+    E -- No --> H([Candidate is the majority element])
+~~~
+
+### Worked example
+
+For <code>[2, 2, 1, 1, 1, 2, 2]</code>:
+
+| Number | Candidate <code>x</code> | Count <code>c</code> | What happened |
+| :---: | :---: | :---: | --- |
+| 2 | 2 | 1 | Start with 2 |
+| 2 | 2 | 2 | Same candidate → increment |
+| 1 | 2 | 1 | Different value → cancel one vote |
+| 1 | 1 | 1 | Count reached 0 → choose 1 |
+| 1 | 1 | 2 | Same candidate → increment |
+| 2 | 1 | 1 | Different value → cancel one vote |
+| 2 | 2 | 1 | Count reached 0 → choose 2 |
+
+🎯 Final candidate: **2**
+
+---
 
 ## Final C solution
 
-```c
+~~~c
 int majorityElement(int* nums, int numsSize) {
     int i,x=nums[0],c=1;
     for(i=1;i<numsSize;i++){
@@ -51,20 +107,25 @@ int majorityElement(int* nums, int numsSize) {
     }
     return x;
 }
-```
+~~~
 
 ## Complexity
 
-- **Time complexity:** O(n) — one pass through the array.
-- **Space complexity:** O(1) — only the candidate, counter, and loop index are stored.
+| Time | Space | Why |
+| :---: | :---: | --- |
+| **O(n)** | **O(1)** | One pass through the array; only the candidate, counter, and loop index are stored. |
+
+---
 
 ## How the algorithm was derived
 
-The solution began with the direct O(n²) idea: count the frequency of each number and check whether it exceeds half the array length. The improvement came from recognizing that different values can cancel each other out in pairs. Since the majority element appears more than half the time, it survives every possible cancellation. This leads naturally to keeping just one running candidate and a count instead of maintaining many frequency counts.
+The solution began with the direct **O(n²)** idea: count the frequency of each number and check whether it exceeds half the array length. The improvement came from recognizing that different values can cancel each other in pairs. Since the majority element appears more than half the time, it survives every possible cancellation.
+
+That insight replaces repeated frequency counting with just one running candidate and one counter.
 
 ## Key learnings
 
 - Start with a correct brute-force solution; it reveals what information is actually needed.
-- A guaranteed majority element is a powerful condition that enables Boyer–Moore Voting.
-- “Cancelling” different pairs is a useful way to reduce a frequency problem to constant space.
-- Boyer–Moore returns a candidate. If a majority element were **not** guaranteed, a second pass would be needed to verify its count.
+- A guaranteed majority element is the condition that makes Boyer–Moore work.
+- “Cancelling” different pairs can turn a frequency problem into a constant-space solution.
+- Boyer–Moore returns a **candidate**. If a majority element were **not** guaranteed, use a second pass to verify its count.
