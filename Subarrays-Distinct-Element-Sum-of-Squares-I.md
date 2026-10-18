@@ -34,17 +34,17 @@ The frequency array is reset for each new starting index, so it always represent
 
 ~~~mermaid
 flowchart TD
-    A([Choose start index i]) --> B[Reset frequency array<br/>and distinct = 0]
-    B --> C([Extend end index j])
-    C --> D{Has nums[j] appeared<br/>in this subarray?}
-    D -- No --> E[Increase distinct]
-    D -- Yes --> F[Keep distinct unchanged]
-    E --> G[Increase frequency of nums[j]]
+    A([Choose start index]) --> B["Reset frequencies; set distinct to 0"]
+    B --> C([Extend end index])
+    C --> D{"Was current value seen before?"}
+    D -- No --> E["Increase distinct count"]
+    D -- Yes --> F["Keep distinct count unchanged"]
+    E --> G["Increase current value frequency"]
     F --> G
-    G --> H[Add distinct² to answer]
-    H --> I{More end indices?}
+    G --> H["Add distinct times distinct to answer"]
+    H --> I{"More end indices?"}
     I -- Yes --> C
-    I -- No --> J{More start indices?}
+    I -- No --> J{"More start indices?"}
     J -- Yes --> A
     J -- No --> K([Return answer])
 ~~~
