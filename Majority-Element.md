@@ -58,12 +58,12 @@ Keep only two pieces of information:
 
 ~~~mermaid
 flowchart TD
-    A([Read next number]) --> B{Does it match<br/>the candidate?}
-    B -- Yes --> C[Increase count]
-    B -- No --> D[Decrease count]
-    C --> E{More numbers?}
-    D --> F{Count is zero?}
-    F -- Yes --> G[Set current number<br/>as candidate and count = 1]
+    A([Read next number]) --> B{"Matches candidate?"}
+    B -- Yes --> C["Increase count"]
+    B -- No --> D["Decrease count"]
+    C --> E{"More numbers?"}
+    D --> F{"Count is zero?"}
+    F -- Yes --> G["Set current number as candidate; set count to 1"]
     F -- No --> E
     G --> E
     E -- Yes --> A
